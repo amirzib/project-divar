@@ -1,0 +1,52 @@
+#web scraping in shaypoor
+import requests,re
+from bs4 import BeautifulSoup
+number=input("plz enter your number: ")
+req=requests.post("https://api.divar.ir/v5/auth/authenticate",json={"phone":number})
+code=input("plz enter the code: ")
+req2=requests.post("https://api.divar.ir/v5/auth/confirm",json={"phone":number,"code":code})
+cookies ={
+'did': '428c1a7f-95a7-47d9-b53c-8078e748d114',
+'_gcl_au': '1.1.1077855023.1680873070',
+'multi-city': 'tehran%7C',
+'city': 'tehran',
+'chat_opened': '',
+'sessionid': '',
+'_gid': 'GA1.2.1916466543.1683835832',
+'token':req2.json()['token'],
+'_ga': 'GA1.1.754248581.1680873070',
+'_ga_SXEW31VJGJ': 'GS1.1.1683841702.5.1.1683843179.6.0.0',
+}
+
+headers = {
+'authority': 'api.divar.ir',
+'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+'accept-language': 'en-IN,en-GB;q=0.9,en-US;q=0.8,en;q=0.7',
+'cache-control': 'max-age=0',
+# 'cookie': 'did=428c1a7f-95a7-47d9-b53c-8078e748d114; _gcl_au=1.1.1077855023.1680873070; multi-city=tehran%7C; city=tehran; chat_opened=; sessionid=; _gid=GA1.2.1916466543.1683835832; token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiMDkwNDQ3Mzc1NzQiLCJpc3MiOiJhdXRoIiwidmVyaWZpZWRfdGltZSI6MTY4Mzg0Mjk0NiwiaWF0IjoxNjgzODQyOTQ2LCJleHAiOjE2ODUxMzg5NDYsInVzZXItdHlwZSI6InBlcnNvbmFsIiwidXNlci10eXBlLWZhIjoiXHUwNjdlXHUwNjQ2XHUwNjQ0IFx1MDYzNFx1MDYyZVx1MDYzNVx1MDZjYyIsInNpZCI6IjI3YjQzMDhlLWFjNGMtNDRlMy05MDdiLTdjNzk3Y2RjYzNhMiJ9.WxIL6WaNoMcw_d031a2Zw5D2sUKnXR2hDZPnMIgR1CA; _ga=GA1.1.754248581.1680873070; _ga_SXEW31VJGJ=GS1.1.1683841702.5.1.1683843179.6.0.0',
+'sec-ch-ua': '"Google Chrome";v="113", "Chromium";v="113", "Not-A.Brand";v="24"',
+'sec-ch-ua-mobile': '?0',
+'sec-ch-ua-platform': '"Windows"',
+'sec-fetch-dest': 'document',
+'sec-fetch-mode': 'navigate',
+'sec-fetch-site': 'none',
+'sec-fetch-user': '?1',
+'upgrade-insecure-requests': '1',
+'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36',
+    }
+
+search=input("plz search...")
+r=requests.get(f"https://divar.ir/s/tehran?q={search}")
+site_text=r.text
+soup=BeautifulSoup(site_text,'html.parser')
+for div in soup.find_all("div", "post-card-item-af972 kt-col-6-bee95 kt-col-xxl-4-e9d46"):
+    for a in div.find_all("a"):
+        #print(a["href"])
+        uniq = re.search(r'/([^/]+)$',a["href"]).group()
+        response = requests.get(f'https://api.divar.ir/v8/postcontact/web/contact_info{uniq}', cookies=cookies, headers=headers)
+        try:
+            phone_number = re.search(r'\d{11}', response.text).group()
+            print(phone_number)
+        except AttributeError:
+            continue
+#{"token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiMDkwNDQ3Mzc1NzQiLCJpc3MiOiJhdXRoIiwidmVyaWZpZWRfdGltZSI6MTY4Mzg0MjI1MiwiaWF0IjoxNjgzODQyMjUyLCJleHAiOjE2ODUxMzgyNTIsInVzZXItdHlwZSI6InBlcnNvbmFsIiwidXNlci10eXBlLWZhIjoiXHUwNjdlXHUwNjQ2XHUwNjQ0IFx1MDYzNFx1MDYyZVx1MDYzNVx1MDZjYyIsInNpZCI6ImFmNmE4NzVjLTgwODEtNGI2Mi1hOWM2LTVmMjU2ZTBmNjU2YiJ9.JBlqh2KkjGLHTbz-To1hEcPEXUoCH9fetoBkP6zPpYc"}
